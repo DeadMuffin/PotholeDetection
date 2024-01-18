@@ -16,6 +16,10 @@ def main():
     parser = argparse.ArgumentParser(description="Pothole detection.")
     parser.add_argument("--headless", action="store_true", default=False,
                         help="Run without Video? Defaults to False.")
+    parser.add_argument("--nogps", action="store_true", default=False,
+                        help="Run without GPS. Defaults to False.")
+    parser.add_argument("--notof", action="store_true", default=False,
+                        help="Run without TOF. Defaults to False.")
     parser.add_argument("--weights_path", type=str, default=f"{file_path}/../data/models/fallback_best.pt",
                         help="The path to the models weights file. Defaults to data/weights/fallback_best.pt")
     parser.add_argument("--cam_source", type=int, default=0,
@@ -24,6 +28,8 @@ def main():
                         help="The width of the camera. Defaults to 1920")
     parser.add_argument("--cam_height", type=int, default=1080,
                         help="The height of the camera. Defaults to 1080")
+    parser.add_argument("--gps_node", type=str, default='/dev/tty.usbmodem1301',
+                        help="The gps node where the USB is connected. Defaults to /dev/tty.usbmodem1301")
 
     # TODO decide to make output path optional as well
     args = parser.parse_args()
@@ -32,11 +38,14 @@ def main():
     cam_width = args.cam_width
     cam_height = args.cam_height
     headless = args.headless
+    nogps = args.nogps
+    notof = args.notof
+    gps_node = args.gps_node
 
     # init
     detector = detection.Detection(weights_path)
     cam = camera.Camera(cam_source, cam_width, cam_height)
-    counter = 0
+    counter = len([d for d in os.listdir('data/results') if os.path.isdir(os.path.join('data/results', d))])
 
     # main
     while True:
@@ -49,23 +58,36 @@ def main():
 
         if pothole_detection.confidence.size > 0 and pothole_detection.confidence[0] > 0.5:
             print("-------------STORING POTHOLE---------------")  # TODO delete later, just for Debug
-            gps_coordinates = gps_module.read_gps_coordinates()
+            if not nogps:
+                latitude, longitude = gps_module.get_gps_coordinates(gps_node)
 
-            # tof_image = tof_camera.capture_tof_image(pothole_detection.xyxy[0]) TODO whole tof part
+        #   if not notof:
+            tof_images = []  # = tof_camera.capture_tof_image(pothole_detection.xyxy[0]) TODO whole tof part
 
             # Save images and data
             create_dir(f"data/results/{counter}")
-            # save_image(tof_image, f"data/result/{counter}/tof_capture.ply")
             save_image(frame, f"data/results/{counter}/frame.jpg")
-            save_text(f"Latitude: {gps_coordinates[0]}\nLongitude: {gps_coordinates[1]}\n",
-                      f"data/results/{counter}/result.txt")
-            save_text(f"Average Pothole Depth: {get_avg_pothole_depth()}\n",
-                      f"data/results/{counter}/result.txt")
-            save_text(f"Max Pothole Depth: {get_max_pothole_depth()}\n",
-                      f"data/results/{counter}/result.txt")
-            save_text(f"Pothole Size: {get_pothole_size()}\n",
+            save_text(f"Pothole Confidence: {pothole_detection.confidence[0]}\n",
                       f"data/results/{counter}/result.txt")
 
+            if not nogps:
+                save_text(f"Latitude: {int(latitude[:2])}°{latitude[2:4]}.{latitude[4:]}\' N, \nLongitude: {int(longitude[:3])}°{longitude[3:5]}.{longitude[5:]}\' E\n",
+                          f"data/results/{counter}/result.txt")
+            else:
+                save_text("Latitude: no gps\nLongitude: no gps\n",
+                          f"data/results/{counter}/result.txt")
+            if not notof:
+                for i, tof in enumerate(tof_images):
+                    #  save_image(tof, f"data/result/{counter}/tof_capture{i}.ply")
+                    save_text(f"Average Pothole Depth {i}: {get_avg_pothole_depth()}\n",
+                              f"data/results/{counter}/result.txt")
+                    save_text(f"Max Pothole Depth {i}: {get_max_pothole_depth()}\n",
+                              f"data/results/{counter}/result.txt")
+                    save_text(f"Pothole Size {i}: {get_pothole_size()}\n",
+                              f"data/results/{counter}/result.txt")
+            else:
+                save_text("Average Pothole Depth: no tof\nMax Pothole Depth: no tof\nPothole Size: no tof",
+                          f"data/results/{counter}/result.txt")
             counter += 1
 
         if not headless:

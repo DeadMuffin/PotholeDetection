@@ -12,9 +12,9 @@ def save_image(image, output_path):
 def label_image(frame,detections, model_names):
     ZONE_POLYGON = np.array([
         [0, 0],
-        [0.5, 0],
-        [0.5, 1],
-        [0, 1]
+        [0, 0],
+        [0, 0],
+        [0, 0]
     ])
 
     box_annotator = sv.BoxAnnotator(

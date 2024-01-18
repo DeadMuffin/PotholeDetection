@@ -21,20 +21,28 @@ and pothole characteristics.
 
 ## Prerequisites
 
+Make sure you have Git installed on your system. Download the git repository by running:
+```bash 
+git clone https://github.com/DeadMuffin/PotholeDetection.git
+```
+
 Make sure you have Python installed on your system. Install the required Python packages by running:
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
 ## Usage
 
 ```bash
-python main.py [--headless] [--weights_path WEIGHTS_PATH] [--cam_source CAM_SOURCE] [--cam_width CAM_WIDTH] [--cam_height CAM_HEIGHT]
+python main.py [--headless] [--nogps] [--notof] [--gps_node GPS_NODE] [--weights_path WEIGHTS_PATH] [--cam_source CAM_SOURCE] [--cam_width CAM_WIDTH] [--cam_height CAM_HEIGHT]
 ```
 
 ## Options
 - --headless*: Run without video (default: False)
+- --nogps*: Run without gps (default: False)
+- --notof*: Run without tof (default: False)
+- --gps_node : The gps node where the USB is connected. (Defaults to /dev/tty.usbmodem1301").
 - --weights_path : Path to the YOLOv8 weights file (default:data models/fallback_best.pt).
 - --cam_source : Camera source number (default: 0).
 - --cam_width: Camera frame width (default: 1920).

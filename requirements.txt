@@ -2,3 +2,4 @@ ultralytics == 8.1.0
 numpy == 1.26.3
 opencv-python == 4.9.0.80
 supervision == 0.17.1
+pyserial == 3.5
