@@ -1,12 +1,12 @@
 import argparse
 import cv2
 import os
+import subprocess
 # local imports
 import camera
 import detection
 import gps_module
 from utils.image_utils import save_image, label_image
-from utils.tof_utils import get_pothole_size, get_avg_pothole_depth, get_max_pothole_depth
 from utils.utils import save_text, create_dir
 
 
@@ -57,41 +57,49 @@ def main():
         frame = label_image(frame, pothole_detection, detector.model.names)
 
         if pothole_detection.confidence.size > 0 and pothole_detection.confidence[0] > 0.5:
-            print("-------------STORING POTHOLE---------------")  # TODO delete later, just for Debug
-            if not nogps:
-                latitude, longitude = gps_module.get_gps_coordinates(gps_node)
-
-        #   if not notof:
-            tof_images = []  # = tof_camera.capture_tof_image(pothole_detection.xyxy[0]) TODO whole tof part
+            print("-------------STORING POTHOLE---------------")
 
             # Save images and data
             create_dir(f"data/results/{counter}")
             save_image(frame, f"data/results/{counter}/frame.jpg")
-            save_text(f"Pothole Confidence: {pothole_detection.confidence[0]}\n",
-                      f"data/results/{counter}/result.txt")
+            save_text(f"Pothole Confidence: {pothole_detection.confidence[0]}\n", f"data/results/{counter}/result.txt")
 
             if not nogps:
-                save_text(f"Latitude: {int(latitude[:2])}°{latitude[2:4]}.{latitude[4:]}\' N, \nLongitude: {int(longitude[:3])}°{longitude[3:5]}.{longitude[5:]}\' E\n",
+                latitude, longitude = gps_module.get_gps_coordinates(gps_node)  # TODO maybe multithreading
+                save_text(f"Latitude: {int(latitude[:2])}°{latitude[2:4]}.{latitude[4:]}\' N, "
+                          f"\nLongitude: {int(longitude[:3])}°{longitude[3:5]}.{longitude[5:]}\' E\n",
                           f"data/results/{counter}/result.txt")
             else:
-                save_text("Latitude: no gps\nLongitude: no gps\n",
-                          f"data/results/{counter}/result.txt")
-            if not notof:
-                for i, tof in enumerate(tof_images):
-                    #  save_image(tof, f"data/result/{counter}/tof_capture{i}.ply")
-                    save_text(f"Average Pothole Depth {i}: {get_avg_pothole_depth()}\n",
-                              f"data/results/{counter}/result.txt")
-                    save_text(f"Max Pothole Depth {i}: {get_max_pothole_depth()}\n",
-                              f"data/results/{counter}/result.txt")
-                    save_text(f"Pothole Size {i}: {get_pothole_size()}\n",
-                              f"data/results/{counter}/result.txt")
-            else:
-                save_text("Average Pothole Depth: no tof\nMax Pothole Depth: no tof\nPothole Size: no tof",
-                          f"data/results/{counter}/result.txt")
-            counter += 1
+                save_text("Latitude: no gps\nLongitude: no gps\n", f"data/results/{counter}/result.txt")
 
-        if not headless:
-            cv2.imshow("Pothole Detection", frame)
+            if not notof:
+                # Befehl zum Aktivieren der virtuellen Umgebung
+                activate_cmd = 'venv\\Scripts\\activate'
+                camera_is_connected = True
+                for i, xyxy in enumerate(pothole_detection.xyxy):
+                    p1x = "--p1x " + str(xyxy[0]) + " "
+                    p1y = "--p1y " + str(xyxy[1]) + " "
+                    p2x = "--p2x " + str(xyxy[2]) + " "
+                    p2y = "--p2y " + str(xyxy[3]) + " "
+                    storageDir = "--dir " + f"data/results/" + " "
+                    counterAttribute = "--counter " + str(counter) + " "
+                    angle = "--angle 45 "
+                    index = "--index " + str(i) + " "
+                    script_cmd = "python.exe main.py " + p1x + p1y + p2x + p2y + counterAttribute + storageDir + angle + index
+
+                    # first pothole in one image will trigger the camera, every later one will just reuse the tof image
+
+                    combined_cmd = f'{activate_cmd} && {script_cmd}'
+                    subprocess.run(combined_cmd, shell=True)
+                print("Tof analysis done")
+            else:
+                save_text("Average Pothole Depth: no tof\nMax Pothole Depth: no tof",
+                      f"data/results/{counter}/result.txt")
+
+    counter += 1
+
+    if not headless:
+        cv2.imshow("Pothole Detection", frame)
 
 
 if __name__ == "__main__":

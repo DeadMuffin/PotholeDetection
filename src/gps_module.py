@@ -42,3 +42,5 @@ def get_gps_coordinates(gps_node):  # TODO might use multithreading and storing 
         print(f"Error: {e}")
     finally:
         gps.close()
+
+

@@ -2,12 +2,12 @@
 
 ## Overview
 
-This Python script was implemented during the IP at FH-Aachen.
+This Python script was implemented during the IP Pothole Detection at FH-Aachen.
 
 It implements a pothole detection system using computer vision and YOLOv8.
 The system captures video frames from a camera,
 detects potholes in the frames,
-then captures a picture with a TOF camera
+then activates a script which captures a picture with a TOF camera
 and stores relevant information such as GPS coordinates
 and pothole characteristics.
 
@@ -15,8 +15,8 @@ and pothole characteristics.
 
 - Real-time pothole detection using YOLOv8
 - Retrieves pothole characteristics like max-depth from TOF camera
-- Optional headless mode for non-visual execution
 - GPS coordinates retrieval
+- Optional modes like nogps, notof or headless for non-visual execution
 - Capture and storage of pothole images and data
 
 ## Prerequisites
@@ -26,11 +26,25 @@ Make sure you have Git installed on your system. Download the git repository by 
 git clone https://github.com/DeadMuffin/PotholeDetection.git
 ```
 
-Make sure you have Python installed on your system. Install the required Python packages by running:
+Make sure you have Python 3.9 and 3.7 installed on your system.
+To use tof and pothole detection you need two virtuell environments.
+When you have successfully installed both venv start the venv with Python3.9 by running:
 
+on mac
+```bash
+source .yourVenvName/bin/activate
+```
+on windows
+```bash
+.\yourVenvName\Scripts\activate
+```
+
+Install the required Python3.9 packages by running:
 ```bash
 pip3 install -r requirements.txt
 ```
+
+For fulfilling the requirements for venv37 take a look in README_TOF.md
 
 ## Usage
 
