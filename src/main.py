@@ -2,6 +2,7 @@ import argparse
 import cv2
 import os
 import subprocess
+import time
 # local imports
 import camera
 import detection
@@ -56,6 +57,9 @@ def main():
         pothole_detection = detector.detect_potholes(frame)
         frame = label_image(frame, pothole_detection, detector.model.names)
 
+        if not headless:
+            cv2.imshow("Pothole Detection", frame)
+
         if pothole_detection.confidence.size > 0 and pothole_detection.confidence[0] > 0.5:
             print("-------------STORING POTHOLE---------------")
 
@@ -95,11 +99,8 @@ def main():
             else:
                 save_text("Average Pothole Depth: no tof\nMax Pothole Depth: no tof",
                       f"data/results/{counter}/result.txt")
-
-    counter += 1
-
-    if not headless:
-        cv2.imshow("Pothole Detection", frame)
+                time.sleep(1)  # anti-spam for test purpose only if tof deactivates
+            counter += 1
 
 
 if __name__ == "__main__":
