@@ -135,13 +135,16 @@ class TofPotholeAnalysis:
         Process a ply file.
         """
         pcd = pa.open_ply(self.plyFile)
+        pa.write_pcd_to_file(pcd, self.directory_ply + "/pothole.ply")
         pcd = pa.filter_pcd_by_null(pcd)
 
-        p1_scaled = pa.convert_2d_points_to_3d_scale(p1)
-        p2_scaled = pa.convert_2d_points_to_3d_scale(p2)
+        p1x, p1y = pa.convert_2d_points_to_3d_scale(p1)
+        p1 = (p1x - 0.3, p1y - 0.3)
+        p2x, p2y = pa.convert_2d_points_to_3d_scale(p2)
+        p2 = (p2x + 0.3, -0.1)
         pcd = pa.crop_point_cloud_outside_of_rotated_2d_points(pcd, p1, p2, angle=angle)
         pcd = pa.remove_outliers(pcd, 10, 0.1)  # TODO filter evtl zu aggressiv eingestellt (livetest)
-        # pa.visualize_point_cloud(pcd)
+        pa.visualize_point_cloud(pcd)
         pcd_floor = pa.calculate_street_plane_least_square_distance(pcd)
         max_depth = pa.calculate_max_pothole_depth(pcd, pcd_floor, 1)
         average_depth = pa.calculate_average_pothole_depth(pcd, pcd_floor, 1)

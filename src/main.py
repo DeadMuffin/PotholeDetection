@@ -85,14 +85,15 @@ def main():
                     p1y = "--p1y " + str(xyxy[1]) + " "
                     p2x = "--p2x " + str(xyxy[2]) + " "
                     p2y = "--p2y " + str(xyxy[3]) + " "
-                    storageDir = "--dir " + f"data/results/" + " "
+                    storageDir = "--dir " + f"data/results/{counter}" + " "
                     counterAttribute = "--counter " + str(counter) + " "
                     angle = "--angle 45 "
                     index = "--index " + str(i) + " "
                     script_cmd = "python.exe main.py " + p1x + p1y + p2x + p2y + counterAttribute + storageDir + angle + index
 
                     # first pothole in one image will trigger the camera, every later one will just reuse the tof image
-
+                    if i == 0 or not camera_is_connected:
+                        script_cmd += "--create_rrf "
                     combined_cmd = f'{activate_cmd} && {script_cmd}'
                     subprocess.run(combined_cmd, shell=True)
                 print("Tof analysis done")
